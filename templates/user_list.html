@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            background-color: #007BFF;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #007BFF;
+            color: #fff;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        img {
+            max-width: 60px;
+            max-height: 60px;
+            border-radius: 50%;
+        }
+
+        .remove-button {
+            background-color: #FF3B3B;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .remove-button:hover {
+            background-color: #D42727;
+        }
+    </style>
+</head>
+<body>
+    <h1>User List</h1>
+           <h2> <div style="text-align: center;">
+            <a href="/home" class="button">Back to Home Page</a>
+            <a href="/signup" class="button">Add New User</a>
+        </div></h2>
+    <div class="container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Email</th>
+                    <th>Profile Picture</th>
+                    <th>Date of Birth</th>
+                    <th>Bio</th>
+                    <th>Is Admin</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.first_name }}</td>
+                        <td>{{ user.last_name }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            {% if user.userprofile.profile_picture %}
+                                <img src="{{ user.userprofile.profile_picture.url }}" alt="Profile Picture">
+                            {% else %}
+                                No image
+                            {% endif %}
+                        </td>
+                        <td>{{ user.userprofile.date_of_birth }}</td>
+                        <td>{{ user.userprofile.bio }}</td>
+                        <td>{{ user.userprofile.is_admin }}</td>
+                        <td>
+                            {% if not user.userprofile.is_admin %}
+                                <form method="post" action="{% url 'remove_user' user.username %}">
+                                    {% csrf_token %}
+                                    <button class="remove-button" type="submit">Remove</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Article Page</title>
+        <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+
+        .article-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .article-list {
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 24px;
+        }
+
+        .article-item {
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #fff;
+        }
+
+        .article-title {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .article-time {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .article-content {
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .comment-item {
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+
+        .comment-content {
+            font-size: 14px;
+        }
+
+        .comment-time {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .comment-form {
+            margin-top: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        button[type="submit"] {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .hide-article-button {
+            background-color: #dc3545;
+        }
+
+        .edit-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .add-article-link {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="article-container">
+        <div class="article-list">
+            <h1>Articles</h1>
+            {% for article in articles %}
+            <div class="article-item">
+                <h2 class="article-title">
+                    {% if article.author.userprofile.profile_picture %}
+                    <img src="{{ article.author.userprofile.profile_picture.url }}" alt="{{ article.author.username }}'s Profile Picture" style="max-width: 60px; max-height: 60px;">
+                    {% endif %} {{ article.title }}</h2>
+                <p class="article-time">{{article.author}} Published on: {{ article.time }}</p>
+                <p class="article-content">{{ article.content }}</p>
+                 <p class="article-likes-dislikes">
+                 Likes: {{ article.likes.count }} | Dislikes: {{ article.dislikes.count }}
+                 </p>
+
+                <form action="{% url 'like_article' article.id %}" method="post" class="like-dislike-form" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="like-button" style="background-color: {% if user in article.likes.all %}#007bff{% else %}#fff{% endif %}; color: {% if user in article.likes.all %}#fff{% else %}#007bff{% endif %};">
+                        {% if user in article.likes.all %}
+                            Unlike
+                        {% else %}
+                            Like
+                        {% endif %}
+                    </button>
+                </form>
+                <form action="{% url 'dislike_article' article.id %}" method="post" class="like-dislike-form" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="dislike-button" style="background-color: {% if user in article.dislikes.all %}#dc3545{% else %}#fff{% endif %}; color: {% if user in article.dislikes.all %}#fff{% else %}#dc3545{% endif %};">
+                        {% if user in article.dislikes.all %}
+                            Undislike
+                        {% else %}
+                            Dislike
+                        {% endif %}
+                    </button>
+                </form>
+                <div class="article-item">
+                        <h4>Comments:</h4>
+
+                        <ul class="comment-list">
+                            {% for comment in comments %}
+                            {% if comment.article == article %}
+
+                                <li class="comment-item">
+                                    <p class="comment-content">{{ comment.content }}</p>
+                                    <p class="comment-time"> {% if comment.author.userprofile.profile_picture %}
+                                    <img src="{{ comment.author.userprofile.profile_picture.url }}" alt="{{ comment.author.username }}'s Profile Picture" style="max-width: 50px; max-height: 50px;">
+                                    {% endif %} {{ comment.author }} at {{ comment.time }}</p>
+                                </li>
+                            {% endif %}
+                            {% endfor %}
+                        </ul>
+
+                    <form class="comment-form" action="{% url 'add_comment' article.id %}" method="post">
+                        {% csrf_token %}
+                        <textarea name="content" rows="3" placeholder="Add a comment..."></textarea>
+                        <button type="submit">Submit Comment</button>
+                    </form>
+                </div>
+                {% if user.is_authenticated and user == article.author %}
+                <form action="{% url 'hide_article' article.id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="hide-article-button">Hide Article</button>
+                </form>
+                {% endif %}
+                {% if user.is_authenticated and user == article.author %}
+                    <form action="{% url 'update_article' article.id %}" method="get">
+                        {% csrf_token %}
+                        <button type="submit" class="edit-article-button" style="background-color: green;">Edit Article</button>
+                    </form>
+                {% endif %}
+                {% if user.is_authenticated and user.userprofile.is_admin %}
+                    <form action="{% url 'delete_article' article.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="delete-article-button">Delete Article</button>
+                    </form>
+                {% endif %}
+            </div>
+            {% endfor %}
+            <div class="add-article-link">
+                <a href="{% url 'add_article' %}">Add New Article</a>
+            </div>
+            <div class="add-article-link">
+            <a href="{% url 'home' %}">Back to main page</a>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
